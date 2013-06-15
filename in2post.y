@@ -223,8 +223,10 @@ int calculate_postfix (char *postfix) {
 		
 		//else postfix[i-1] is an operator && postfix[i] == ' ' so we continue
 	}
-	
-	pop(&a);
+
+	if (pop(&a) == -1) {
+		return -1; //stack underflow!
+	}
 	return a; //return the result
 }
 
