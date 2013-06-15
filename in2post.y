@@ -2,9 +2,13 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include "stack.h"
+	
+	#define isdigit(c) ((c >= '0' && c <= '9') ? 1 : 0)
 	
 	int yylex (void);
 	void yyerror (char *);
+	int calculate_postfix (char *postfix); //calculates and returns the result of a postfix expression
 	void clean_up (void); //we register this function with atexit to be executed at the end, and free up the memmory we allocated
 	
 	char tmp[4096]; //we place here the result of each action until we allocate memory for $$
@@ -24,43 +28,46 @@
 %type <string> term
 %type <string> fact
 %%
-program:						/* (5) The Root*/
-/*NULL*/						/*The complete program is either empty or,*/
+program:									/* (5) The Root*/
+/*NULL*/									/*The complete program is either empty or,*/
 
-| program line					/*a complete program is a complete program folowed by a line*/
+| program line								/*a complete program is a complete program folowed by a line*/
 ;
 
 
-line:							/* (4) */
-  T_NL							/*Then, a program line can be just a new line character,*/
+line:										/* (4) */
+  T_NL										/*Then, a program line can be just a new line character,*/
   
-| expr T_NL	{ 					/*or an expression that end with a new line character.*/
-	printf("%s\n", $1);
+| expr T_NL	{ 								/*or an expression that end with a new line character.*/
+	printf("%s is equal to %d\n", $1, calculate_postfix($1));
 }
 ;
 
 
-expr:																	/* (3) */
-  term																	/*Then, an expression can be just a term,*/
+expr:										/* (3) */
+  term										/*Then, an expression can be just a term,*/
   
-| expr T_PLUS term {													/*or an other expression followed by a '+' sign and a term*/
+| expr T_PLUS term {						/*or an other expression followed by a '+' sign and a term*/
 	sprintf(tmp, "%s %s +", $1, $3);
 	
-	if (($$ = strdup(tmp)) == NULL) { //allocate memmory for the $$ string
+	//allocate memmory for the $$ string
+	if (($$ = strdup(tmp)) == NULL) {
 		perror("yyparse: realloc");
 		exit(1);
 	}
 	
-	tmpptr = realloc( tmpptr, sizeof(char *) * (tmpptr_i + 1) ); //resize the table with the tmp pointers
+	//resize the table with the tmp pointers
+	tmpptr = realloc( tmpptr, sizeof(char *) * (tmpptr_i + 1) );
 	if (tmpptr == NULL) {
 		perror("yyparse: realloc");
 		exit(1);
 	}
 	
-	tmpptr[tmpptr_i++] = $$; //register the new pointer to the table
+	//register the new pointer to the table
+	tmpptr[tmpptr_i++] = $$;
 }
 	
-| expr T_MIN term {														/*or an other expression followed by a '-' sign and a term.*/
+| expr T_MIN term {							/*or an other expression followed by a '-' sign and a term.*/
 	sprintf(tmp, "%s %s -", $1, $3);
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -79,10 +86,10 @@ expr:																	/* (3) */
 ;
 
 
-term:																	/* (2) */
-  fact																	/*Then, a term can be just a factor,*/
+term:										/* (2) */
+  fact										/*Then, a term can be just a factor,*/
   
-| term T_MUL fact {														/*or an other term followed by a '*' sign and a factor,*/
+| term T_MUL fact {							/*or an other term followed by a '*' sign and a factor,*/
 	sprintf(tmp, "%s %s *", $1, $3);
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -99,7 +106,7 @@ term:																	/* (2) */
 	tmpptr[tmpptr_i++] = $$;
 }
   
-| term T_DIV fact {														/*or an other term followed by a '/' sign and a factor.*/
+| term T_DIV fact {							/*or an other term followed by a '/' sign and a factor.*/
 	sprintf(tmp, "%s %s /", $1, $3); 
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -118,10 +125,10 @@ term:																	/* (2) */
 ;
 
 
-fact:																	/* (1) */
-  T_LITERAL																/*A factor can be a literal,*/
+fact:										/* (1) */
+  T_LITERAL									/*A factor can be a literal,*/
   
-| T_LP expr T_RP {														/*or a '(' symbol followed by an expression and a ')' symbol.*/
+| T_LP expr T_RP {							/*or a '(' symbol followed by an expression and a ')' symbol.*/
 	sprintf(tmp, "%s", $2);
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -140,8 +147,10 @@ fact:																	/* (1) */
 ;
 
 %%
-int main (void) {	
-	if (atexit(clean_up) != 0) { //register the clean_up function
+int main (void) {
+
+	//register the clean_up function
+	if (atexit(clean_up) != 0) {
 		fprintf(stderr, "error while setting exit function\n");
 		exit(1);
 	}
@@ -163,3 +172,63 @@ void clean_up (void) {
 	}
 	free(tmpptr);
 }
+
+int calculate_postfix (char *postfix) {
+	int i, k, a, b;
+	char num_buf[11];
+
+	for (i = 0, k = 0; postfix[i] != '\0'; ++i) {
+		if (isdigit(postfix[i])) {
+			num_buf[k++] = postfix[i]; //extract the digits of a number
+		}
+		else if (isdigit(postfix[i-1]) && postfix[i] == ' ') { //if finished reading the number
+			num_buf[k] = '\0';
+			if (push(atoi(num_buf)) == -1) { //push it then to the stack
+				return -1; //stack overflow!
+			}
+			
+			k = 0;
+		}
+		else if (postfix[i] != ' ') { //then we have an operator
+			if (pop(&b) == -1) {
+				return -1; //stack underflow!
+			}
+			else if (pop(&a) == -1) {
+				return -1; //stack underflow!
+			}
+			
+			switch (postfix[i]) {
+				case '+':
+					if (push(a+b) == -1) {
+						return -1; //stack overflow!
+					}			
+					break;
+				case '-':
+					if (push(a-b) == -1) {
+						return -1; //stack overflow!
+					}		
+					break;
+				case '*':
+					if (push(a*b) == -1) {
+						return -1; //stack overflow!
+					}			
+					break;
+				case '/':
+					if (push(a/b) == -1) {
+						return -1; //stack overflow!
+					}		
+					break;
+			}
+		}
+		
+		//else postfix[i-1] is an operator && postfix[i] == ' ' so we continue
+	}
+	
+	pop(&a);
+	return a; //return the result
+}
+
+
+
+
+

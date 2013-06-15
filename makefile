@@ -1,9 +1,13 @@
-CC=gcc
-LEX=flex
-YACC=bison
+CC = gcc
+LEX = flex
+YACC = bison
+OBJ = lex.yy.o y.tab.o stack.o
 
 default: in2post
 
+stack.o: stack.c stack.h
+	$(CC) -c stack.c -o stack.o
+	
 y.tab.c y.tab.h: in2post.y
 	$(YACC) -y -d in2post.y
 
@@ -16,8 +20,8 @@ y.tab.o: y.tab.c
 lex.yy.o: lex.yy.c y.tab.h
 	$(CC) -c lex.yy.c -o lex.yy.o
 
-in2post: lex.yy.o y.tab.o y.tab.h
-	$(CC) lex.yy.o y.tab.o -o in2post
+in2post: $(OBJ) y.tab.h stack.h
+	$(CC) $(OBJ) -o in2post
 
 clean:
-	rm y.tab.c lex.yy.c y.tab.h y.tab.o lex.yy.o in2post
+	rm y.tab.c lex.yy.c y.tab.h $(OBJ) in2post

@@ -14,10 +14,10 @@ WSP [ \t]
 [-]		{ return T_MIN; }
 [*]		{ return T_MUL; }
 [/]		{ return T_DIV; }
-{WSP}+	{ ; }											/*The whitespace is dropped*/
-.		{ yyerror("Invalid character"); }				/*And we return an error if flex detect an invalid token*/
+{WSP}+	{ ; }													/*The whitespace is dropped*/
+.		{ yyerror("Invalid character"); }						/*And we return an error if flex detect an invalid token*/
 %%
 int yywrap (void) {
-	return 1; //the code is not splitted into files
+	return 1; //we use stdin
 }
 
