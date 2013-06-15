@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include <errno.h>
 	#include "stack.h"
 	
 	#define isdigit(c) ((c >= '0' && c <= '9') ? 1 : 0)
@@ -39,7 +40,16 @@ line:										/* (4) */
   T_NL										/*Then, a program line can be just a new line character,*/
   
 | expr T_NL	{ 								/*or an expression that end with a new line character.*/
-	printf("%s is equal to %d\n", $1, calculate_postfix($1));
+	int res = 0;
+	
+	res = calculate_postfix($1);
+	if (res == -1 && errno == EDOM) { //if division by zero occurred
+		fprintf(stderr, "Error: Division by zero\n");
+		printf("%s the result is undefined\n", $1);
+	}
+	else {
+		printf("%s is equal to %d\n", $1, res);
+	}
 }
 ;
 
@@ -177,6 +187,7 @@ int calculate_postfix (char *postfix) {
 	int i, k, a, b;
 	char num_buf[11];
 
+	errno = 0; //clear errno
 	for (i = 0, k = 0; postfix[i] != '\0'; ++i) {
 		if (isdigit(postfix[i])) {
 			num_buf[k++] = postfix[i]; //extract the digits of a number
@@ -214,6 +225,11 @@ int calculate_postfix (char *postfix) {
 					}			
 					break;
 				case '/':
+					if (b == 0) { //division by zero
+						errno = EDOM; //set errno
+						return -1;
+					}
+				
 					if (push(a/b) == -1) {
 						return -1; //stack overflow!
 					}		
