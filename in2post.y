@@ -15,6 +15,8 @@
 	char tmp[4096]; //we place here the result of each action until we allocate memory for $$
 	char **tmpptr; //we keep here the tmp pointer to free them at the end, it is used by the clean_up function
 	int tmpptr_i = 0; //tmpptr counter
+	
+	extern FILE *yyin;
 %}
 
 %token T_NL T_LP T_RP T_PLUS T_MIN T_MUL T_DIV T_MOD
@@ -174,12 +176,21 @@ fact:										/* (1) */
 ;
 
 %%
-int main (void) {
+int main (int argc, char **argv) {
+	FILE *fp;
 
 	//register the clean_up function
 	if (atexit(clean_up) != 0) {
 		fprintf(stderr, "error while setting exit function\n");
-		exit(1);
+		return 1;
+	}
+	
+	if (argc == 2) { //if user provides a file use this as input
+		if ((fp = fopen(argv[1], "r")) == NULL) {
+			perror("fopen");
+			return 1;
+		}
+		yyin = fp;
 	}
 	
 	yyparse(); //call the parser
@@ -198,6 +209,10 @@ void clean_up (void) {
 		free(tmpptr[i]);
 	}
 	free(tmpptr);
+	
+	if (yyin != stdin) {
+		close(yyin);
+	}
 }
 
 int calculate_postfix (char *postfix) {

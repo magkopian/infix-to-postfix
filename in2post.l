@@ -16,7 +16,11 @@ WSP [ \t]
 [/]		{ return T_DIV; }
 [%]		{ return T_MOD; }
 {WSP}+	{ ; }													/*The whitespace is dropped*/
-.		{ yyerror("Invalid character"); }						/*And we return an error if flex detect an invalid token*/
+.		{ 														/*And we return an error if flex detect an invalid token*/
+		char itk[20];
+		sprintf(itk, "invalid character `%c`", yytext[0]);
+		yyerror(itk);
+}
 %%
 int yywrap (void) {
 	return 1; //we use stdin
