@@ -187,7 +187,7 @@ int main (int argc, char **argv) {
 	
 	if (argc == 2) { //if user provides a file use this as input
 		if ((fp = fopen(argv[1], "r")) == NULL) {
-			perror(argv[0]);
+			perror("fopen");
 			return 1;
 		}
 		yyin = fp;
