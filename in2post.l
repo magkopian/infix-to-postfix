@@ -14,6 +14,7 @@ WSP [ \t]
 [-]		{ return T_MIN; }
 [*]		{ return T_MUL; }
 [/]		{ return T_DIV; }
+[%]		{ return T_MOD; }
 {WSP}+	{ ; }													/*The whitespace is dropped*/
 .		{ yyerror("Invalid character"); }						/*And we return an error if flex detect an invalid token*/
 %%

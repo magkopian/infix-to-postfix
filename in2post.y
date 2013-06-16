@@ -17,7 +17,7 @@
 	int tmpptr_i = 0; //tmpptr counter
 %}
 
-%token T_NL T_LP T_RP T_PLUS T_MIN T_MUL T_DIV
+%token T_NL T_LP T_RP T_PLUS T_MIN T_MUL T_DIV T_MOD
 
 %union { //we need the numbers to return as string from flex
 	char *string;
@@ -132,6 +132,23 @@ term:										/* (2) */
 	
 	tmpptr[tmpptr_i++] = $$;
 }
+
+| term T_MOD fact {							/*or an other term followed by a '%' sign and a factor.*/
+	sprintf(tmp, "%s %s %%", $1, $3); 
+	
+	if (($$ = strdup(tmp)) == NULL) {
+		perror("yyparse: realloc");
+		exit(1);
+	}
+  
+	tmpptr = realloc( tmpptr, sizeof(char *) * (tmpptr_i + 1) );
+	if (tmpptr == NULL) {
+		perror("yyparse: realloc");
+		exit(1);
+	}
+	
+	tmpptr[tmpptr_i++] = $$;
+}
 ;
 
 
@@ -231,6 +248,16 @@ int calculate_postfix (char *postfix) {
 					}
 				
 					if (push(a/b) == -1) {
+						return -1; //stack overflow!
+					}		
+					break;
+				case '%':
+					if (b == 0) { //division by zero
+						errno = EDOM; //set errno
+						return -1;
+					}
+				
+					if (push(a%b) == -1) {
 						return -1; //stack overflow!
 					}		
 					break;
