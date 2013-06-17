@@ -3,6 +3,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include <errno.h>
+	#include <math.h>
 	#include "stack.h"
 	
 	#define isdigit(c) ((c >= '0' && c <= '9') ? 1 : 0)
@@ -19,7 +20,7 @@
 	extern FILE *yyin;
 %}
 
-%token T_NL T_LP T_RP T_PLUS T_MIN T_MUL T_DIV T_MOD
+%token T_NL T_LP T_RP T_PLUS T_MIN T_MUL T_DIV T_MOD T_POW
 
 %union { //we need the numbers to return as string from flex
 	char *string;
@@ -29,16 +30,17 @@
 
 %type <string> expr
 %type <string> term
+%type <string> efact
 %type <string> fact
 %%
-program:									/* (5) The Root*/
+program:									/* (6) The Root*/
 /*NULL*/									/*The complete program is either empty or,*/
 
 | program line								/*a complete program is a complete program folowed by a line*/
 ;
 
 
-line:										/* (4) */
+line:										/* (5) */
   T_NL										/*Then, a program line can be just a new line character,*/
   
 | expr T_NL	{ 								/*or an expression that end with a new line character.*/
@@ -56,7 +58,7 @@ line:										/* (4) */
 ;
 
 
-expr:										/* (3) */
+expr:										/* (4) */
   term										/*Then, an expression can be just a term,*/
   
 | expr T_PLUS term {						/*or an other expression followed by a '+' sign and a term*/
@@ -98,10 +100,10 @@ expr:										/* (3) */
 ;
 
 
-term:										/* (2) */
-  fact										/*Then, a term can be just a factor,*/
+term:											/* (3) */
+  efact											/*Then, a term can be just a expfactor,*/
   
-| term T_MUL fact {							/*or an other term followed by a '*' sign and a factor,*/
+| term T_MUL efact {							/*or an other term followed by a '*' sign and a expfactor,*/
 	sprintf(tmp, "%s %s *", $1, $3);
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -118,7 +120,7 @@ term:										/* (2) */
 	tmpptr[tmpptr_i++] = $$;
 }
   
-| term T_DIV fact {							/*or an other term followed by a '/' sign and a factor.*/
+| term T_DIV efact {							/*or an other term followed by a '/' sign and a expfactor.*/
 	sprintf(tmp, "%s %s /", $1, $3); 
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -135,7 +137,7 @@ term:										/* (2) */
 	tmpptr[tmpptr_i++] = $$;
 }
 
-| term T_MOD fact {							/*or an other term followed by a '%' sign and a factor.*/
+| term T_MOD efact {							/*or an other term followed by a '%' sign and a expfactor.*/
 	sprintf(tmp, "%s %s %%", $1, $3); 
 	
 	if (($$ = strdup(tmp)) == NULL) {
@@ -153,6 +155,26 @@ term:										/* (2) */
 }
 ;
 
+efact:											/* (2) */
+  fact											/*Then, an expfactor can be just a factor,*/
+  
+| efact T_POW fact {							/*or an other expfactor followed by a '^' sign and a factor.*/
+	sprintf(tmp, "%s %s ^", $1, $3); 
+	
+	if (($$ = strdup(tmp)) == NULL) {
+		perror("yyparse: realloc");
+		exit(1);
+	}
+  
+	tmpptr = realloc( tmpptr, sizeof(char *) * (tmpptr_i + 1) );
+	if (tmpptr == NULL) {
+		perror("yyparse: realloc");
+		exit(1);
+	}
+	
+	tmpptr[tmpptr_i++] = $$;
+}
+;
 
 fact:										/* (1) */
   T_LITERAL									/*A factor can be a literal,*/
@@ -217,7 +239,7 @@ void clean_up (void) {
 
 int calculate_postfix (char *postfix) {
 	int i, k, a, b;
-	char num_buf[11];
+	char num_buf[100]; //just to prevent segmentation faults from bad usage (max unsigned int is just 10 digits long)
 
 	errno = 0; //clear errno
 	for (i = 0, k = 0; postfix[i] != '\0'; ++i) {
@@ -275,6 +297,11 @@ int calculate_postfix (char *postfix) {
 					if (push(a%b) == -1) {
 						return -1; //stack overflow!
 					}		
+					break;
+				case '^':
+					if (push( (int) pow(a, b)) == -1) {
+						return -1; //stack overflow!
+					}			
 					break;
 			}
 		}

@@ -21,7 +21,7 @@ lex.yy.o: lex.yy.c y.tab.h
 	$(CC) -c lex.yy.c -o lex.yy.o
 
 in2post: $(OBJ) y.tab.h stack.h
-	$(CC) $(OBJ) -o in2post
+	$(CC) $(OBJ) -lm -o in2post
 
 clean:
 	rm y.tab.c lex.yy.c y.tab.h $(OBJ) in2post
