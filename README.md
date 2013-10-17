@@ -9,8 +9,7 @@ This is an infix to postfix converter implemented with C, Flex and Bison. For ev
 </p>
 
 <p>
-The user can either input the infix expressions directly to the program or load them from a file. There are supported all the basic operands +, -, *, /, ^, %. But there
-is not supported the unary minus. Also there are supported only integer numbres.
+The user can either input the infix expressions directly to the program or load them from a file. There are supported all the basic operands &#39;+&#39;, &#39;-&#39;, &#39;*&#39;, &#39;/&#39;, &#39;^&#39;, &#39;%&#39;, &#39;(&#39;, &#39;)&#39;. But, there is not supported the unary minus and also there are supported only integer numbres.
 </p>
 
 <h3>Compilation:</h3>
