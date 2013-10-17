@@ -21,6 +21,19 @@ To compile the code, you just use the makefile by running: <br>
 For this to work, the gcc compiler, the make, the flex and the bison programs have to be installed. 
 </p>
 
+<h3>How to use:</h3>
+
+<p>
+To input the infix expressions directly to the program, you just run it like this: <br>
+<code>./in2post</code><br>
+</p>
+
+<p>
+To give the input via a file, you have to specify the file path as an argument like this: <br>
+<code>./in2post path/to/file</code><br>
+Every expression must be on its own line. All empty space is ignored, you can you as many new lines, tabs and spaces you want.
+</p>
+
 </body>
 </html>
 
