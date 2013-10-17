@@ -5,7 +5,7 @@
 <body>
 <h3>Description:</h3>
 <p>
-This is an infix to postfix converter implemented in C, Flex and Bison. For every infix expression the program calculates the postfix equivalent and the mathematical result.
+This is an infix to postfix converter implemented with C, Flex and Bison. For every infix expression the program calculates the postfix equivalent and the mathematical result.
 </p>
 
 <p>
