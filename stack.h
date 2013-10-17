@@ -1,3 +1,10 @@
+/***************************************************************\
+*                                                               *
+* Copyright (c) 2013 Manolis Agkopian                           *
+* See the file LICENCE for copying permission.                  *
+*                                                               *
+\***************************************************************/
+
 #ifndef STACK_H
 #define STACK_H
 

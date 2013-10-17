@@ -1,3 +1,10 @@
+/***************************************************************\
+*                                                               *
+* Copyright (c) 2013 Manolis Agkopian                           *
+* See the file LICENCE for copying permission.                  *
+*                                                               *
+\***************************************************************/
+
 #include "stack.h"
 
 /*The stack pointer points to the position that the next element will be pushed*/

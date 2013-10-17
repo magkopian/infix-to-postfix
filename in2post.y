@@ -1,4 +1,11 @@
 %{
+	/***************************************************************\
+	*                                                               *
+	* Copyright (c) 2013 Manolis Agkopian                           *
+	* See the file LICENCE for copying permission.                  *
+	*                                                               *
+	\***************************************************************/
+
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>

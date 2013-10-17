@@ -1,3 +1,6 @@
+#Copyright (c) 2013 Manolis Agkopian
+#See the file LICENCE for copying permission.
+
 CC = gcc
 LEX = flex
 YACC = bison
